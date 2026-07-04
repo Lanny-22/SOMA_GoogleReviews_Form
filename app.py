@@ -26,9 +26,16 @@ if st.session_state.pending_google_redirect:
     )
 
 st.title("Thank you for visiting SOMA")
-st.caption(
-    "Enter your details below — you'll be taken to Google to leave your review, "
-    "and we'll email your thank-you discount code to the address you provide."
+
+st.markdown(
+    """
+    <div class="soma-info-box">
+      Enter your details below. You'll be taken to Google to leave your review.
+      After submitting your review, check your inbox within the next minute for an
+      email with your discount code.
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
@@ -68,7 +75,7 @@ with st.form("review_registration_form", clear_on_submit=False):
     last_name = st.text_input("Last name", autocomplete="family-name")
     email = st.text_input(
         "Email",
-        help="Use the same email you use for Momence bookings. Your discount code will be sent here.",
+        help="Use the same email you use for Momence bookings.",
         autocomplete="email",
     )
     submitted = st.form_submit_button("Continue to Google Review")
