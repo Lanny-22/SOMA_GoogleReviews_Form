@@ -1,12 +1,9 @@
-import logging
+from typing import Tuple
 
 import requests
 
-logger = logging.getLogger(__name__)
 
-
-def post_webhook(url: str, payload: dict) -> tuple[bool, str]:
-    """Returns (success, error_message). error_message is empty on success."""
+def post_webhook(url: str, payload: dict) -> Tuple[bool, str]:
     clean_url = (url or "").strip()
     if not clean_url:
         return False, "ZAPIER_WEBHOOK is not set in Streamlit secrets."
@@ -26,7 +23,6 @@ def post_webhook(url: str, payload: dict) -> tuple[bool, str]:
         response.raise_for_status()
         return True, ""
     except requests.HTTPError as exc:
-        logger.exception("Webhook HTTP error for %s", clean_url)
         status = exc.response.status_code if exc.response is not None else "unknown"
         body = (exc.response.text or "").strip()[:200] if exc.response is not None else ""
         detail = f" Response: {body}" if body else ""
@@ -36,5 +32,4 @@ def post_webhook(url: str, payload: dict) -> tuple[bool, str]:
             "Copy the Catch Hook URL again from the Zap trigger step.",
         )
     except requests.RequestException as exc:
-        logger.exception("Webhook request failed for %s", clean_url)
         return False, f"Could not reach Zapier: {exc}"

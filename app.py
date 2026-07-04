@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
-from lib.config import DISCOUNT_CODE, GOOGLE_REVIEW_URL, ZAPIER_WEBHOOK, webhook_status
+from lib.config import get_discount_code, get_google_review_url, get_zapier_webhook, webhook_status
 from lib.redirect import redirect_to_external_url
 from lib.styles import inject_global_styles
 from lib.webhooks import post_webhook
@@ -21,7 +21,7 @@ if "pending_google_redirect" not in st.session_state:
 if st.session_state.pending_google_redirect:
     st.session_state.pending_google_redirect = False
     redirect_to_external_url(
-        GOOGLE_REVIEW_URL,
+        get_google_review_url(),
         "Taking you to Google Reviews now. A new tab may open if your browser requires it.",
     )
 
@@ -41,13 +41,13 @@ def handle_registration(first_name: str, last_name: str, email: str) -> None:
         return
 
     success, error = post_webhook(
-        ZAPIER_WEBHOOK,
+        get_zapier_webhook(),
         {
             "event": "review_form_submitted",
             "first_name": first_name.strip(),
             "last_name": last_name.strip(),
             "email": normalized_email,
-            "discount_code": DISCOUNT_CODE,
+            "discount_code": get_discount_code(),
             "submitted_at": datetime.now(timezone.utc).isoformat(),
         },
     )
@@ -83,23 +83,22 @@ if submitted:
 
 with st.expander("Zapier connection check"):
     ok, status_message = webhook_status()
+    webhook = get_zapier_webhook()
     if ok:
         st.success(status_message)
-        st.caption(
-            f"Loaded URL ending in …{ZAPIER_WEBHOOK.rsplit('/', 1)[-1] or '?'}"
-        )
+        st.caption(f"Loaded URL ending in …{webhook.rsplit('/', 1)[-1] or '?'}")
     else:
         st.error(status_message)
 
     if st.button("Send test webhook to Zapier"):
         test_ok, test_error = post_webhook(
-            ZAPIER_WEBHOOK,
+            webhook,
             {
                 "event": "review_form_test",
                 "first_name": "Test",
                 "last_name": "User",
                 "email": "test@example.com",
-                "discount_code": DISCOUNT_CODE,
+                "discount_code": get_discount_code(),
                 "submitted_at": datetime.now(timezone.utc).isoformat(),
             },
         )
