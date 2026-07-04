@@ -1,11 +1,18 @@
 import os
 
 import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 
 
 def _secret(key: str, default: str = "") -> str:
-    if key in st.secrets:
-        return str(st.secrets[key])
+    try:
+        if key in st.secrets:
+            value = st.secrets[key]
+            return str(value) if value is not None else default
+    except StreamlitSecretNotFoundError:
+        pass
+    except Exception:
+        pass
     return os.getenv(key, default)
 
 
