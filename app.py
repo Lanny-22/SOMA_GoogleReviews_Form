@@ -80,32 +80,3 @@ if submitted:
         st.error("Please enter a valid email address.")
     else:
         handle_registration(first_name, last_name, email)
-
-with st.expander("Zapier connection check"):
-    ok, status_message = webhook_status()
-    webhook = get_zapier_webhook()
-    if ok:
-        st.success(status_message)
-        st.caption(f"Loaded URL ending in …{webhook.rsplit('/', 1)[-1] or '?'}")
-    else:
-        st.error(status_message)
-
-    if st.button("Send test webhook to Zapier"):
-        test_ok, test_error = post_webhook(
-            webhook,
-            {
-                "event": "review_form_test",
-                "first_name": "Test",
-                "last_name": "User",
-                "email": "test@example.com",
-                "discount_code": get_discount_code(),
-                "submitted_at": datetime.now(timezone.utc).isoformat(),
-            },
-        )
-        if test_ok:
-            st.success(
-                "Zapier accepted the test webhook. "
-                "In Zapier, open the Catch Hook step → Test trigger → pick the latest request."
-            )
-        else:
-            st.error(test_error)
