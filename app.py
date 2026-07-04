@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from urllib.parse import quote
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from lib.config import (
     APP_BASE_URL,
@@ -11,6 +10,7 @@ from lib.config import (
     GOOGLE_REVIEW_URL,
     ZAPIER_REGISTER_WEBHOOK,
 )
+from lib.redirect import redirect_to_external_url
 from lib.storage import create_submission, email_exists, init_db
 from lib.styles import inject_global_styles
 from lib.webhooks import post_webhook
@@ -24,6 +24,16 @@ st.set_page_config(
 init_db()
 inject_global_styles()
 
+if "pending_google_redirect" not in st.session_state:
+    st.session_state.pending_google_redirect = False
+
+if st.session_state.pending_google_redirect:
+    st.session_state.pending_google_redirect = False
+    redirect_to_external_url(
+        GOOGLE_REVIEW_URL,
+        "Taking you to Google Reviews now. A new tab may open if your browser requires it.",
+    )
+
 st.title("Thank you for visiting SOMA")
 st.caption(
     "Enter your details below — you'll be taken straight to Google to leave your review. "
@@ -33,22 +43,6 @@ st.caption(
 
 def claim_url_for(token: str) -> str:
     return f"{APP_BASE_URL}/claim?token={quote(token)}"
-
-
-def redirect_to_google_review() -> None:
-    st.markdown(
-        f'<meta http-equiv="refresh" content="0;url={GOOGLE_REVIEW_URL}">',
-        unsafe_allow_html=True,
-    )
-    components.html(
-        f"""
-        <script>
-          window.top.location.replace("{GOOGLE_REVIEW_URL}");
-        </script>
-        """,
-        height=0,
-    )
-    st.stop()
 
 
 def handle_registration(first_name: str, last_name: str, email: str) -> bool:
@@ -79,7 +73,8 @@ def handle_registration(first_name: str, last_name: str, email: str) -> bool:
         },
     )
 
-    redirect_to_google_review()
+    st.session_state.pending_google_redirect = True
+    st.rerun()
     return True
 
 
