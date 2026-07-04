@@ -43,20 +43,35 @@ def inject_global_styles() -> None:
             min-height: 44px;
           }
 
-          div[data-testid="stFormSubmitButton"] button {
+          div[data-testid="stFormSubmitButton"] > button {
             width: 100%;
             border-radius: 999px;
             min-height: 48px;
             font-weight: 700;
-            background: rgb(16, 89, 95);
-            color: white;
+            background: rgb(16, 89, 95) !important;
+            color: #ffffff !important;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+          }
+
+          div[data-testid="stFormSubmitButton"] > button:hover,
+          div[data-testid="stFormSubmitButton"] > button:focus,
+          div[data-testid="stFormSubmitButton"] > button:active {
+            background: rgb(12, 68, 73) !important;
+            color: #ffffff !important;
             border: none;
           }
 
-          div[data-testid="stFormSubmitButton"] button:hover {
-            background: rgb(12, 68, 73);
-            color: white;
-            border: none;
+          div[data-testid="stFormSubmitButton"] > button p,
+          div[data-testid="stFormSubmitButton"] > button span,
+          div[data-testid="stFormSubmitButton"] > button div {
+            color: #ffffff !important;
+            text-align: center;
+            width: 100%;
+            margin: 0;
           }
 
           .soma-success-box {
