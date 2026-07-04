@@ -17,12 +17,10 @@ def init_db() -> None:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS submissions (
-                token TEXT PRIMARY KEY,
+                email TEXT PRIMARY KEY,
                 first_name TEXT NOT NULL,
                 last_name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                created_at TEXT NOT NULL,
-                claimed_at TEXT
+                created_at TEXT NOT NULL
             )
             """
         )
@@ -37,35 +35,13 @@ def email_exists(email: str) -> bool:
     return row is not None
 
 
-def create_submission(
-    token: str,
-    first_name: str,
-    last_name: str,
-    email: str,
-) -> None:
+def create_submission(first_name: str, last_name: str, email: str) -> None:
     now = datetime.now(timezone.utc).isoformat()
     with _connect() as conn:
         conn.execute(
             """
-            INSERT INTO submissions (token, first_name, last_name, email, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO submissions (email, first_name, last_name, created_at)
+            VALUES (?, ?, ?, ?)
             """,
-            (token, first_name.strip(), last_name.strip(), email.strip().lower(), now),
-        )
-
-
-def get_submission(token: str) -> sqlite3.Row | None:
-    with _connect() as conn:
-        return conn.execute(
-            "SELECT * FROM submissions WHERE token = ?",
-            (token.strip(),),
-        ).fetchone()
-
-
-def mark_claimed(token: str) -> None:
-    now = datetime.now(timezone.utc).isoformat()
-    with _connect() as conn:
-        conn.execute(
-            "UPDATE submissions SET claimed_at = ? WHERE token = ?",
-            (now, token.strip()),
+            (email.strip().lower(), first_name.strip(), last_name.strip(), now),
         )
