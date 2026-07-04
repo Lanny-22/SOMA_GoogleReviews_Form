@@ -4,7 +4,6 @@ import streamlit as st
 
 from lib.config import DISCOUNT_CODE, GOOGLE_REVIEW_URL, ZAPIER_WEBHOOK
 from lib.redirect import redirect_to_external_url
-from lib.storage import create_submission, email_exists, init_db
 from lib.styles import inject_global_styles
 from lib.webhooks import post_webhook
 
@@ -14,7 +13,6 @@ st.set_page_config(
     layout="centered",
 )
 
-init_db()
 inject_global_styles()
 
 if "pending_google_redirect" not in st.session_state:
@@ -34,17 +32,8 @@ st.caption(
 )
 
 
-def handle_registration(first_name: str, last_name: str, email: str) -> bool:
+def handle_registration(first_name: str, last_name: str, email: str) -> None:
     normalized_email = email.strip().lower()
-
-    if email_exists(normalized_email):
-        st.error(
-            "This email has already been registered. "
-            "Check your inbox for your discount code, or contact the studio if you need help."
-        )
-        return False
-
-    create_submission(first_name, last_name, normalized_email)
 
     post_webhook(
         ZAPIER_WEBHOOK,
@@ -60,7 +49,6 @@ def handle_registration(first_name: str, last_name: str, email: str) -> bool:
 
     st.session_state.pending_google_redirect = True
     st.rerun()
-    return True
 
 
 with st.form("review_registration_form", clear_on_submit=False):
