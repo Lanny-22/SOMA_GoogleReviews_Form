@@ -35,7 +35,7 @@ st.caption(
 def handle_registration(first_name: str, last_name: str, email: str) -> None:
     normalized_email = email.strip().lower()
 
-    result = post_webhook(
+    success, error = post_webhook(
         ZAPIER_WEBHOOK,
         {
             "event": "review_form_submitted",
@@ -47,9 +47,9 @@ def handle_registration(first_name: str, last_name: str, email: str) -> None:
         },
     )
 
-    if not result.ok:
+    if not success:
         st.error(
-            f"Could not notify Zapier, so no email will be sent. {result.error} "
+            f"Could not notify Zapier, so no email will be sent. {error} "
             "Fix this in Streamlit Cloud → Manage app → Settings → Secrets, then reboot."
         )
         return
