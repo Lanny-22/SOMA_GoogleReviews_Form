@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
-from lib.config import DISCOUNT_CODE, GOOGLE_REVIEW_URL, ZAPIER_WEBHOOK
+from lib.config import DISCOUNT_CODE, GOOGLE_REVIEW_URL, ZAPIER_WEBHOOK, webhook_status
 from lib.redirect import redirect_to_external_url
 from lib.styles import inject_global_styles
 from lib.webhooks import post_webhook
@@ -34,6 +34,11 @@ st.caption(
 
 def handle_registration(first_name: str, last_name: str, email: str) -> None:
     normalized_email = email.strip().lower()
+
+    ok, status_message = webhook_status()
+    if not ok:
+        st.error(f"{status_message} Update Secrets and reboot the app.")
+        return
 
     success, error = post_webhook(
         ZAPIER_WEBHOOK,
@@ -75,3 +80,33 @@ if submitted:
         st.error("Please enter a valid email address.")
     else:
         handle_registration(first_name, last_name, email)
+
+with st.expander("Zapier connection check"):
+    ok, status_message = webhook_status()
+    if ok:
+        st.success(status_message)
+        st.caption(
+            f"Loaded URL ending in …{ZAPIER_WEBHOOK.rsplit('/', 1)[-1] or '?'}"
+        )
+    else:
+        st.error(status_message)
+
+    if st.button("Send test webhook to Zapier"):
+        test_ok, test_error = post_webhook(
+            ZAPIER_WEBHOOK,
+            {
+                "event": "review_form_test",
+                "first_name": "Test",
+                "last_name": "User",
+                "email": "test@example.com",
+                "discount_code": DISCOUNT_CODE,
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+        if test_ok:
+            st.success(
+                "Zapier accepted the test webhook. "
+                "In Zapier, open the Catch Hook step → Test trigger → pick the latest request."
+            )
+        else:
+            st.error(test_error)
